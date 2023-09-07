@@ -1,4 +1,4 @@
-# Service Deployment Automation Tool
+# Service Deployment Automation Tool - aang
 
 A command-line utility for deploying and managing cloud services with ease.
 
