@@ -94,5 +94,5 @@ resource "local_file" "ssh_instructions" {
 
 resource "local_file" "progress_log" {
   content  = local.scp_progress
-  filename = "../install_progress"
+  filename = "../.install_progress"
 }

@@ -156,3 +156,15 @@ resource "aws_security_group_rule" "service_ingress_stun_listen_block" {
   type        = "ingress"
   security_group_id = aws_security_group.service[count.index].id
 }
+
+
+resource "aws_security_group_rule" "service_ingress_stun_listen_block_tcp" {
+  count       = var.byo_sg == false ? var.sg_count : 0
+  from_port   = var.stun_from_port
+  to_port     = var.stun_to_port
+  protocol    = "tcp"
+  cidr_blocks = var.udp_cidrs
+  type        = "ingress"
+  security_group_id = aws_security_group.service[count.index].id
+}
+
