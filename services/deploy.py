@@ -24,10 +24,10 @@ CMD_TERRAFORM_DESTROY = 'destroy'
 CMD_TERRAFORM_STATUS = 'status'
 RESULT_GO_TO_PYTHON = 'result_req_do_something'
 
-APP_INSTALL_LOG = './install_progress'
+APP_INSTALL_LOG = './.install_progress'
 
 
-services = ['service_aws_freeswitch_base', 'service_aws_freeswitch_lb']
+services = ['service_aws_freeswitch_base']
 regions=["us-east-1","us-east-2","us-gov-east-1","us-gov-west-1","us-west-1","us-west-2"
          "af-south-1","ap-east-1","ap-northeast-1", "ap-northeast-2","ap-northeast-3","ap-south-1",
          "ap-southeast-1","ap-southeast-2","ca-central-1","cn-north-1", "cn-northwest-1","eu-central-1",
@@ -158,7 +158,7 @@ def destroy(tf_env):
         cmd = f'cd {service}; '
         cmd = cmd + (r'rm -rf terraform.tfstate; rm -rf .terraform; rm -rf .terraform.lock.hcl; rm -rf terraform.tfstate.backup; cd ..; now=$(date +"%Y-%m-%d-%H_%M_%S"); '
                      r'cp .tf_env .tf_env_${now}; echo ".tf_env_${now} is archived."; rm -rf .tf_env; rm -rf fs_install.sh; '
-                     r'rm -rf progress_log; rm -rf *.log; rm -rf freeswitch.status ')
+                     r'rm -rf .progress_log; rm -rf *.log; rm -rf freeswitch.status ')
         ret = subprocess.run(cmd, shell=True, env=tf_env)
     except Exception as err:
         print(err)
