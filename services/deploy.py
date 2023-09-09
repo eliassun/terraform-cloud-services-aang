@@ -22,12 +22,13 @@ TERRAFORM_VAR_BIN = './bin/terraform'
 CMD_TERRAFORM_UP = 'up'
 CMD_TERRAFORM_DESTROY = 'destroy'
 CMD_TERRAFORM_STATUS = 'status'
+CMD_TERRAFORM_REFRESH = 'refresh'
 RESULT_GO_TO_PYTHON = 'result_req_do_something'
 
 APP_INSTALL_LOG = './.install_progress'
 
 
-services = ['service_aws_freeswitch_base']
+services = ['service_aws_freeswitch_base', 'service_aws_freeswitch_asg']
 regions=["us-east-1","us-east-2","us-gov-east-1","us-gov-west-1","us-west-1","us-west-2"
          "af-south-1","ap-east-1","ap-northeast-1", "ap-northeast-2","ap-northeast-3","ap-south-1",
          "ap-southeast-1","ap-southeast-2","ca-central-1","cn-north-1", "cn-northwest-1","eu-central-1",
@@ -63,6 +64,18 @@ def deploy(tf_env):
         print(ret.stderr)
     return True
 
+def refresh(tf_env):
+    try:
+        service = tf_env.get('service')
+        cmd = f'cd {service}; terraform refresh'
+        ret = subprocess.run(cmd, shell=True, env=tf_env, stderr = subprocess.STDOUT)
+    except Exception as err:
+        print(f'Failed to refresh outputs. Error: {err}')
+        return False
+    if ret.returncode:
+        print('Failed to refresh outputs.')
+        print(ret.stderr)
+    return True
 
 def env():
     env = dict(os.environ)
@@ -177,6 +190,12 @@ def deploy_destroy():
         sys.exit(0)
     print('No existing service to destroy!')
 
+def deploy_refresh():
+    if os.path.isfile(TERRAFORM_VAR_FILE):
+        refresh( env())
+        sys.exit(0)
+    print('No existing service to refresh!')
+
 def deploy_status():
     if not os.path.isfile(APP_INSTALL_LOG):
         print('0% ...')
@@ -199,6 +218,9 @@ def get_parser():
 
     parser_req_from_go = subparsers.add_parser(CMD_TERRAFORM_STATUS, help='Show App install progress')
     parser_req_from_go.set_defaults(func=lambda o: deploy_status())
+
+    parser_req_from_go = subparsers.add_parser(CMD_TERRAFORM_REFRESH, help='Fresh Outputs')
+    parser_req_from_go.set_defaults(func=lambda o: deploy_refresh())
 
     return parser
 
