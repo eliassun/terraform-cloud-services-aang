@@ -1,3 +1,8 @@
+#****************************************************************************
+# main.tf
+# Author: Elias Sun (eliassun@gmail.com)
+# Terraform script to create a ASG on AWS
+#****************************************************************************
 
 
 data "http" "install" {
@@ -61,7 +66,7 @@ resource "aws_launch_template" "tmpl" {
 }
 
 resource "aws_autoscaling_group" "asg" {
-  count                     = length(var.subnet_id)
+  count                     = !var.alb? length(var.subnet_id) : 0
   name                      = "${var.prefix}-asg-${count.index + 1}-${var.tag}"
   vpc_zone_identifier       = [element(distinct(var.subnet_id), count.index)]
   max_size                  = var.max_size
@@ -94,13 +99,54 @@ resource "aws_autoscaling_group" "asg" {
   lifecycle {
     ignore_changes = [load_balancers, desired_capacity, target_group_arns]
   }
+
+}
+
+resource "aws_autoscaling_group" "asg_alb" {
+  count                     = var.alb? length(var.subnet_id) : 0
+  name                      = "${var.prefix}-asg-${count.index + 1}-${var.tag}"
+  vpc_zone_identifier       = [element(distinct(var.subnet_id), count.index)]
+  max_size                  = var.max_size
+  min_size                  = var.min_size
+  health_check_type         = var.health_check_type
+  health_check_grace_period = var.health_check_grace_period
+  protect_from_scale_in     = var.protect_from_scale_in
+  wait_for_capacity_timeout = var.wait_for_capacity_timeout
+
+  launch_template {
+    id      = aws_launch_template.tmpl.id
+    version = var.tmp_ver
+  }
+
+  enabled_metrics = [
+    "GroupDesiredCapacity",
+    "GroupInServiceInstances",
+    "GroupMaxSize",
+    "GroupMinSize",
+    "GroupPendingInstances",
+    "GroupStandbyInstances",
+    "GroupTerminatingInstances",
+    "GroupTotalInstances",
+  ]
+
+  timeouts {
+    delete = "20m"
+  }
+
+  lifecycle {
+    ignore_changes = [load_balancers, desired_capacity, target_group_arns]
+  }
+
+  target_group_arns = var.alb_arn
+
+  depends_on = [var.alb_obj]
 }
 
 resource "null_resource" "wait_for_asg_instances" {
   provisioner "local-exec" {
     command = "sleep 60" # waits for 60 seconds; adjust as needed
   }
-  depends_on = [aws_autoscaling_group.asg]
+  depends_on = [aws_autoscaling_group.asg, aws_autoscaling_group.asg_alb]
 }
 
 

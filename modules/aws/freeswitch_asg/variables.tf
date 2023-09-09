@@ -121,3 +121,16 @@ variable "heartbeat_timeout_terminating" {
   default     = 180
 }
 
+variable "alb" {
+  type    = bool
+  default = false
+}
+
+variable "alb_arn" {
+  description = "ALB AWS ARN for ASG"
+  default     = []
+}
+
+variable "alb_obj" {
+  default = null
+}
