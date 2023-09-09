@@ -43,8 +43,13 @@ locals {
   scp_progress = <<EOT
 scp -i ${var.prefix}-key-${random_string.tag.result}.pem ubuntu@${module.freeswitch.freeswitch_public_ips[0]}:/home/ubuntu/install/progress.log ./
 cat ./progress.log
-scp -i ${var.prefix}-key-${random_string.tag.result}.pem ubuntu@${module.freeswitch.freeswitch_public_ips[0]}:/home/ubuntu/install/freeswitch.status ./
-cat ./freeswitch.status
+if grep "100%" ./progress.log
+then
+  scp -i ${var.prefix}-key-${random_string.tag.result}.pem ubuntu@${module.freeswitch.freeswitch_public_ips[0]}:/home/ubuntu/install/freeswitch.status ./
+  cat ./freeswitch.status
+  rm -rf ./freeswitch.status
+fi
+rm -rf ./progress.log
 EOT
 
   ssh_instructions = <<EOT

@@ -40,16 +40,18 @@ output "fs" {
 }
 
 locals {
+
   scp_progress = <<EOT
+echo "Connecting to the server ... "
 scp -i ${var.prefix}-key-${random_string.tag.result}.pem ubuntu@${module.freeswitch_asg.public_ips[0]}:/home/ubuntu/install/progress.log ./
 cat ./progress.log
-
-if grep -Fxq "100%" ./progress.log
+if grep "100%" ./progress.log
 then
 scp -i ${var.prefix}-key-${random_string.tag.result}.pem ubuntu@${module.freeswitch_asg.public_ips[0]}:/home/ubuntu/install/freeswitch.status ./
 cat ./freeswitch.status
+rm -rf ./freeswitch.status
 fi
-
+rm -rf ./progress.log
 EOT
 
   ssh_instructions = <<EOT
